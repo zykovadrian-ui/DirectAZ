@@ -2,618 +2,227 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>DirectAZ Pro — Полноценный P2P Мессенджер</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Простой чат</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* Переменные для тем */
-        :root {
-            --bg-gradient-start: #667eea;
-            --bg-gradient-end: #764ba2;
-            --bg-primary: #ffffff;
-            --bg-secondary: #f7f9fc;
-            --bg-tertiary: #f8fafc;
-            --text-primary: #2d3748;
-            --text-secondary: #718096;
-            --text-white: #ffffff;
-            --border-color: #e2e8f0;
-            --message-sent: #667eea;
-            --message-received: #ffffff;
-            --header-bg: #4a5568;
-            --status-online: #48bb78;
-            --status-offline: #fc8181;
-            --shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        body.dark {
-            --bg-gradient-start: #1a1a2e;
-            --bg-gradient-end: #16213e;
-            --bg-primary: #1e1e2e;
-            --bg-secondary: #2d2d3d;
-            --bg-tertiary: #252535;
-            --text-primary: #e2e8f0;
-            --text-secondary: #a0aec0;
-            --text-white: #ffffff;
-            --border-color: #3d3d4d;
-            --message-sent: #4c51bf;
-            --message-received: #2d2d3d;
-            --header-bg: #0f0f1a;
-            --shadow: 0 20px 60px rgba(0,0,0,0.5);
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
-            min-height: 100vh;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #0f172a;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 10px;
         }
-
-        /* Основной контейнер */
-        .app {
+        .chat {
             width: 100%;
             max-width: 500px;
-            height: 95vh;
-            background: var(--bg-primary);
-            border-radius: 25px;
-            box-shadow: var(--shadow);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Шапка */
-        .header {
-            background: var(--header-bg);
-            color: var(--text-white);
-            padding: 15px;
-            text-align: center;
-            position: relative;
-        }
-
-        .header h1 {
-            font-size: 1.2em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-            font-size: 0.75em;
-            opacity: 0.9;
-        }
-
-        .theme-toggle {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px;
-            position: absolute;
-            right: 15px;
-            top: 15px;
-        }
-
-        /* Табы навигации */
-        .tabs {
-            display: flex;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .tab {
-            flex: 1;
-            padding: 12px;
-            text-align: center;
-            background: none;
-            border: none;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            color: var(--text-secondary);
-            transition: all 0.3s;
-        }
-
-        .tab.active {
-            color: var(--message-sent);
-            border-bottom: 2px solid var(--message-sent);
-            background: var(--bg-primary);
-        }
-
-        /* Панели */
-        .panel {
-            display: none;
-            flex: 1;
-            overflow-y: auto;
-            background: var(--bg-tertiary);
-        }
-
-        .panel.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Профиль */
-        .profile-section {
-            background: var(--bg-primary);
-            padding: 15px;
-            margin: 10px;
-            border-radius: 15px;
-            border: 1px solid var(--border-color);
-        }
-
-        .profile-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--message-sent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            cursor: pointer;
-        }
-
-        .profile-info {
-            flex: 1;
-        }
-
-        .profile-info input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            margin-bottom: 5px;
-        }
-
-        .profile-status {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        /* Список друзей */
-        .friends-list, .chat-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-
-        .friend-item, .chat-item {
-            background: var(--bg-primary);
-            padding: 12px;
-            margin-bottom: 8px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            border: 1px solid var(--border-color);
-            transition: all 0.2s;
-        }
-
-        .friend-item:hover, .chat-item:hover {
-            transform: scale(0.98);
-        }
-
-        .friend-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: var(--message-sent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-        }
-
-        .friend-info {
-            flex: 1;
-        }
-
-        .friend-name {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .friend-id {
-            font-size: 10px;
-            color: var(--text-secondary);
-            font-family: monospace;
-        }
-
-        .friend-status {
-            font-size: 11px;
-            margin-top: 3px;
-        }
-
-        .status-online {
-            color: var(--status-online);
-        }
-
-        .status-offline {
-            color: var(--status-offline);
-        }
-
-        /* QR код */
-        .qr-section {
-            text-align: center;
-            padding: 20px;
-        }
-
-        #qrCanvas {
-            width: 200px;
-            height: 200px;
-            margin: 10px auto;
+            height: 100%;
+            max-height: 700px;
             background: white;
-            padding: 10px;
-            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
         }
-
-        .qr-actions {
+        .header {
+            background: #3b82f6;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .id-box {
+            background: #e2e8f0;
+            padding: 15px;
+            text-align: center;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .connect-box {
+            padding: 15px;
+            background: #f8fafc;
             display: flex;
             gap: 10px;
-            justify-content: center;
-            margin-top: 15px;
+            border-bottom: 1px solid #e2e8f0;
         }
-
-        /* Bluetooth */
-        .bt-section {
-            padding: 15px;
-        }
-
-        .bt-device {
-            background: var(--bg-primary);
+        .connect-box input {
+            flex: 1;
             padding: 12px;
-            margin-bottom: 8px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
+            border: 1px solid #cbd5e0;
+            border-radius: 10px;
+            font-size: 16px;
         }
-
-        /* Чат */
-        .chat-header {
-            background: var(--bg-primary);
-            padding: 12px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .back-btn {
-            background: none;
+        button {
+            background: #3b82f6;
+            color: white;
             border: none;
-            font-size: 24px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: bold;
             cursor: pointer;
-            color: var(--text-primary);
         }
-
-        .chat-messages {
+        .messages {
             flex: 1;
             overflow-y: auto;
             padding: 15px;
+            background: #f1f5f9;
         }
-
-        .message {
+        .msg {
             margin-bottom: 12px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .message.sent {
-            align-items: flex-end;
-        }
-
-        .message.received {
-            align-items: flex-start;
-        }
-
-        .bubble {
-            max-width: 80%;
             padding: 10px 14px;
             border-radius: 18px;
+            max-width: 75%;
             word-wrap: break-word;
-            position: relative;
         }
-
-        .sent .bubble {
-            background: var(--message-sent);
+        .msg.sent {
+            background: #3b82f6;
             color: white;
-            border-bottom-right-radius: 4px;
+            margin-left: auto;
         }
-
-        .received .bubble {
-            background: var(--message-received);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            border-bottom-left-radius: 4px;
+        .msg.received {
+            background: white;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
         }
-
-        .message-time {
-            font-size: 10px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-            padding: 0 5px;
-        }
-
-        .typing-indicator {
-            font-size: 11px;
-            color: var(--text-secondary);
-            margin: 5px 0;
-            font-style: italic;
-        }
-
-        .chat-input-area {
-            padding: 12px;
-            background: var(--bg-primary);
-            border-top: 1px solid var(--border-color);
+        .input-area {
+            padding: 15px;
+            background: white;
             display: flex;
-            gap: 8px;
+            gap: 10px;
+            border-top: 1px solid #e2e8f0;
         }
-
-        .chat-input-area input {
+        .input-area input {
             flex: 1;
             padding: 12px;
-            border: 1px solid var(--border-color);
+            border: 1px solid #cbd5e0;
             border-radius: 25px;
-            font-size: 14px;
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
+            font-size: 16px;
         }
-
-        /* Кнопки */
-        button {
-            background: var(--message-sent);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        button:active {
-            transform: scale(0.95);
-        }
-
-        button.secondary {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        /* Адаптив */
-        @media (max-width: 480px) {
-            .app {
-                height: 100vh;
-                border-radius: 0;
-            }
-            body {
-                padding: 0;
-            }
+        .status {
+            font-size: 12px;
+            padding: 5px 15px;
+            text-align: center;
+            background: #f1f5f9;
         }
     </style>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-    <div class="app">
-        <div class="header">
-            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
-            <h1>📡 DirectAZ Pro</h1>
-            <div class="status-bar">
-                <span id="connectionStatus">🟡 Инициализация</span>
-                <span id="myIdDisplay">Загрузка...</span>
-            </div>
-        </div>
-
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('chat')">💬 Чаты</button>
-            <button class="tab" onclick="switchTab('friends')">👥 Друзья</button>
-            <button class="tab" onclick="switchTab('connect')">🔗 Подключение</button>
-            <button class="tab" onclick="switchTab('profile')">👤 Профиль</button>
-        </div>
-
-        <!-- Панель чатов -->
-        <div id="chatPanel" class="panel active">
-            <div class="friends-list" id="chatsList">
-                <div class="system-message" style="text-align: center; padding: 20px;">Нет активных чатов</div>
-            </div>
-        </div>
-
-        <!-- Панель друзей -->
-        <div id="friendsPanel" class="panel">
-            <div style="padding: 10px;">
-                <button onclick="showAddFriendModal()" style="width: 100%; margin-bottom: 10px;">➕ Добавить друга</button>
-            </div>
-            <div class="friends-list" id="friendsList"></div>
-        </div>
-
-        <!-- Панель подключения -->
-        <div id="connectPanel" class="panel">
-            <div class="qr-section">
-                <h3>📱 Показать QR-код</h3>
-                <div id="qrCanvas"></div>
-                <div class="qr-actions">
-                    <button onclick="showMyQR()">Мой QR</button>
-                    <button onclick="scanQR()">📷 Сканировать QR</button>
-                </div>
-            </div>
-
-            <div class="bt-section">
-                <h3>📡 Bluetooth</h3>
-                <button onclick="scanBluetooth()" style="width: 100%; margin: 10px 0;">🔍 Поиск Bluetooth</button>
-                <div id="btDevices"></div>
-            </div>
-
-            <div class="bt-section">
-                <h3>🔧 Ручное подключение</h3>
-                <input type="text" id="manualPeerId" placeholder="Введите ID друга" style="width: 100%; padding: 10px; margin: 10px 0; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
-                <button onclick="connectManual()" style="width: 100%;">🔗 Подключиться</button>
-            </div>
-        </div>
-
-        <!-- Панель профиля -->
-        <div id="profilePanel" class="panel">
-            <div class="profile-section">
-                <div class="profile-header">
-                    <div class="avatar" id="avatarDisplay" onclick="changeAvatar()">😀</div>
-                    <div class="profile-info">
-                        <input type="text" id="userName" placeholder="Ваше имя" maxlength="30">
-                        <div class="profile-status">Ваш ID: <span id="profilePeerId">-</span></div>
-                    </div>
-                </div>
-                <div style="margin-top: 15px;">
-                    <label>Статус:</label>
-                    <select id="userStatus" style="width: 100%; padding: 8px; margin-top: 5px; border-radius: 8px;">
-                        <option value="online">🟢 Онлайн</option>
-                        <option value="away">🌙 Отошёл</option>
-                        <option value="busy">🔴 Не беспокоить</option>
-                    </select>
-                </div>
-                <div style="margin-top: 15px;">
-                    <button onclick="exportChats()" class="secondary" style="width: 48%;">📤 Экспорт</button>
-                    <button onclick="importChats()" class="secondary" style="width: 48%; float: right;">📥 Импорт</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Окно чата (скрытое) -->
-        <div id="chatWindow" style="display: none; flex-direction: column; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-tertiary); z-index: 10;">
-            <div class="chat-header">
-                <button class="back-btn" onclick="closeChat()">←</button>
-                <div>
-                    <div id="chatFriendName" style="font-weight: 600;"></div>
-                    <div id="chatFriendStatus" style="font-size: 11px;"></div>
-                </div>
-            </div>
-            <div class="chat-messages" id="chatMessages"></div>
-            <div id="typingIndicator" class="typing-indicator" style="padding: 0 15px;"></div>
-            <div class="chat-input-area">
-                <input type="text" id="chatInput" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendChatMessage()">
-                <button onclick="sendChatMessage()">📤</button>
-            </div>
-        </div>
+<div class="chat">
+    <div class="header">
+        <strong>💬 Простой чат</strong>
     </div>
+    <div class="id-box" onclick="copyId()">
+        📋 Ваш ID: <span id="myId">загрузка...</span>
+    </div>
+    <div class="connect-box">
+        <input type="text" id="friendId" placeholder="Введите ID друга">
+        <button id="connectBtn">Подключиться</button>
+    </div>
+    <div class="status" id="status">⚪ Не подключено</div>
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+        <input type="text" id="msgInput" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') send()">
+        <button id="sendBtn">📤</button>
+    </div>
+</div>
 
-    <script>
-        // ========== Глобальные переменные ==========
-        let peer = null;
-        let currentPeerId = null;
-        let activeConnections = {}; // peerId -> connection
-        let currentChatId = null;
-        let typingTimeouts = {};
-        
-        // Хранилище
-        let friends = JSON.parse(localStorage.getItem('friends') || '[]');
-        let messages = JSON.parse(localStorage.getItem('messages') || '{}');
-        let userProfile = JSON.parse(localStorage.getItem('profile') || '{"name":"Я","avatar":"😀","status":"online"}');
-        
-        // ========== Инициализация ==========
-        function init() {
-            // Загружаем профиль
-            document.getElementById('userName').value = userProfile.name;
-            document.getElementById('avatarDisplay').textContent = userProfile.avatar;
-            document.getElementById('userStatus').value = userProfile.status;
-            
-            // Генерируем ID
-            const randomId = 'az_' + Math.random().toString(36).substring(2, 10) + '_' + Date.now().toString(36);
-            
-            peer = new Peer(randomId, {
-                debug: 0,
-                config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
-            });
-            
-            peer.on('open', (id) => {
-                currentPeerId = id;
-                document.getElementById('myIdDisplay').innerHTML = `🆔 ${id.substring(0, 10)}...`;
-                document.getElementById('profilePeerId').textContent = id;
-                document.getElementById('connectionStatus').innerHTML = '🟢 Готов';
-                
-                // Показываем QR
-                showMyQR();
-                renderFriendsList();
-                renderChatsList();
-                
-                addSystemMessage('✅ Мессенджер готов!');
-            });
-            
-            peer.on('connection', (conn) => {
-                addSystemMessage(`📞 Входящее от ${conn.peer.substring(0, 8)}...`);
-                setupConnection(conn);
-            });
-            
-            peer.on('error', (err) => {
-                console.error(err);
-                if (err.type !== 'peer-unavailable') {
-                    addSystemMessage(`❌ Ошибка: ${err.message}`);
-                }
-            });
-            
-            // Сохраняем профиль при изменении
-            document.getElementById('userName').onchange = () => {
-                userProfile.name = document.getElementById('userName').value;
-                localStorage.setItem('profile', JSON.stringify(userProfile));
-                renderFriendsList();
-                renderChatsList();
-            };
-            
-            document.getElementById('userStatus').onchange = () => {
-                userProfile.status = document.getElementById('userStatus').value;
-                localStorage.setItem('profile', JSON.stringify(userProfile));
-                broadcastStatus();
-            };
+<script>
+    let peer, conn, myIdValue;
+    const messagesDiv = document.getElementById('messages');
+    const statusDiv = document.getElementById('status');
+    const msgInput = document.getElementById('msgInput');
+    const sendBtn = document.getElementById('sendBtn');
+    
+    // Отключить отправку пока нет связи
+    sendBtn.disabled = true;
+    msgInput.disabled = true;
+    
+    function addMsg(text, isMe) {
+        const div = document.createElement('div');
+        div.className = 'msg ' + (isMe ? 'sent' : 'received');
+        div.textContent = text;
+        messagesDiv.appendChild(div);
+        div.scrollIntoView();
+    }
+    
+    function copyId() {
+        if (myIdValue) {
+            navigator.clipboard.writeText(myIdValue);
+            alert('ID скопирован: ' + myIdValue);
         }
-        
-        function setupConnection(conn) {
-            activeConnections[conn.peer] = conn;
-            
-            // Добавляем в друзья если нет
-            if (!friends.find(f => f.id === conn.peer)) {
-                friends.push({ id: conn.peer, name: `Друг ${conn.peer.substring(0, 6)}`, avatar: '👤', lastSeen: Date.now() });
-                localStorage.setItem('friends', JSON.stringify(friends));
-            }
-            
-            conn.on('data', (data) => {
-                if (data.type === 'message') {
-                    saveMessage(conn.peer, data.text, false);
-                    if (currentChatId === conn.peer) {
-                        renderChatMessages();
-                    }
-                    renderChatsList();
-                } else if (data.type === 'typing') {
-                    if (currentChatId === conn.peer) {
-                        document.getElementById('typingIndicator').innerHTML = '✍️ Друг печатает...';
-                        clearTimeout(typingTimeouts[conn.peer]);
-                        typingTimeouts[conn.peer] = setTimeout(() => {
-                            document.getElementById('typingIndicator').innerHTML = '';
-                        }, 1500);
-                    }
-                } else if (data.type === 'status') {
-                    updateFriendStatus(conn.peer, data.status);
-                }
-      
+    }
+    
+    // Создаём peer с коротким ID
+    let shortId = localStorage.getItem('shortId');
+    if (!shortId) {
+        shortId = prompt('Придумайте короткий ID (3-6 символов, латиница или цифры):', 'кот' + Math.floor(Math.random()*100));
+        if (!shortId) shortId = 'user' + Math.floor(Math.random()*1000);
+        localStorage.setItem('shortId', shortId);
+    }
+    
+    peer = new Peer(shortId);
+    
+    peer.on('open', (id) => {
+        myIdValue = id;
+        document.getElementById('myId').textContent = id;
+        statusDiv.innerHTML = '🟢 Ваш ID: ' + id + ' (нажми чтобы скопировать)';
+    });
+    
+    peer.on('connection', (c) => {
+        conn = c;
+        setupConnection();
+        statusDiv.innerHTML = '🟢 Подключено к ' + conn.peer;
+        sendBtn.disabled = false;
+        msgInput.disabled = false;
+        addMsg('✅ Собеседник подключился', false);
+    });
+    
+    peer.on('error', (err) => {
+        if (err.type === 'peer-unavailable') {
+            statusDiv.innerHTML = '🔴 Собеседник не найден';
+        }
+    });
+    
+    function setupConnection() {
+        conn.on('data', (data) => {
+            addMsg(data.text, false);
+        });
+        conn.on('close', () => {
+            statusDiv.innerHTML = '⚪ Соединение разорвано';
+            sendBtn.disabled = true;
+            msgInput.disabled = true;
+            addMsg('🔌 Собеседник отключился', false);
+        });
+    }
+    
+    document.getElementById('connectBtn').onclick = () => {
+        const friendId = document.getElementById('friendId').value.trim();
+        if (!friendId) return;
+        if (conn) conn.close();
+        conn = peer.connect(friendId);
+        setupConnection();
+        statusDiv.innerHTML = '🟡 Подключение к ' + friendId + '...';
+    };
+    
+    function send() {
+        const text = msgInput.value.trim();
+        if (!text || !conn) return;
+        conn.send({ text: text });
+        addMsg(text, true);
+        msgInput.value = '';
+    }
+    
+    sendBtn.onclick = send;
+    
+    // Подсказка
+    setTimeout(() => {
+        addMsg('✨ Отправьте этот ID другу: ' + shortId, false);
+        addMsg('💡 Друг вводит ваш ID и нажимает "Подключиться"', false);
+    }, 1000);
+</script>
+</body>
+</html>
