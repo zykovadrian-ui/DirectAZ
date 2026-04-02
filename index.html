@@ -133,14 +133,23 @@
             margin-top: 5px;
             display: inline-block;
         }
+        .error-box {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-top: 8px;
+            display: none;
+        }
     </style>
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
 <body>
     <div class="chat-container">
         <div class="header">
             <h1>📡 DirectAZ</h1>
-            <div class="status" id="statusText">Инициализация...</div>
+            <div class="status" id="statusText">Подключение...</div>
         </div>
         
         <div class="connection-panel">
@@ -154,6 +163,7 @@
                 <button id="connectBtn">🔗 Подключиться</button>
                 <button id="disconnectBtn" style="background:#fc8181">❌</button>
             </div>
+            <div id="errorBox" class="error-box"></div>
         </div>
         
         <div class="messages-area" id="messagesArea">
@@ -170,11 +180,13 @@
         let peer = null;
         let activeConnection = null;
         let isConnected = false;
+        let reconnectAttempts = 0;
         
         const messagesArea = document.getElementById('messagesArea');
         const myPeerIdSpan = document.getElementById('myPeerId');
         const statusText = document.getElementById('statusText');
         const messageInput = document.getElementById('messageInput');
+        const errorBox = document.getElementById('errorBox');
         
         function addMessage(text, isSent, isSystem = false) {
             const messageDiv = document.createElement('div');
@@ -198,6 +210,12 @@
         
         function addSystemMessage(text) {
             addMessage(text, false, true);
+        }
+        
+        function showError(msg) {
+            errorBox.style.display = 'block';
+            errorBox.innerHTML = msg;
+            setTimeout(() => { errorBox.style.display = 'none'; }, 5000);
         }
         
         function updateStatus(connected, peerId = null) {
@@ -241,7 +259,10 @@
             conn.on('open', () => updateStatus(true, conn.peer));
             conn.on('data', (data) => { if (data.type === 'message') addMessage(data.text, false); });
             conn.on('close', () => updateStatus(false));
-            conn.on('error', () => updateStatus(false));
+            conn.on('error', (err) => { 
+                console.log(err);
+                updateStatus(false);
+            });
             if (isIncoming && conn.open) updateStatus(true, conn.peer);
         }
         
@@ -262,32 +283,62 @@
         
         function copyMyId() {
             const id = myPeerIdSpan.textContent;
-            navigator.clipboard.writeText(id);
-            addSystemMessage('📋 ID скопирован!');
+            if (id && id !== 'Загрузка...') {
+                navigator.clipboard.writeText(id);
+                addSystemMessage('📋 ID скопирован!');
+            }
         }
         
         function initPeer() {
             const randomId = 'az_' + Math.random().toString(36).substring(2, 10);
+            
+            // Используем другой сервер PeerJS
             peer = new Peer(randomId, {
-                debug: 0,
-                config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
+                host: '0.peerjs.com',
+                port: 443,
+                path: '/',
+                secure: true,
+                config: { 
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' }
+                    ] 
+                }
             });
             
             peer.on('open', (id) => {
                 myPeerIdSpan.textContent = id;
                 statusText.innerHTML = `🟡 Не подключено | ID: ${id.substring(0, 12)}...`;
                 addSystemMessage(`✅ DirectAZ готов! Ваш ID: ${id}`);
+                reconnectAttempts = 0;
             });
             
             peer.on('connection', (conn) => {
                 addSystemMessage(`📞 Входящее от ${conn.peer.substring(0, 8)}...`);
-                if (activeConnection) { conn.close(); return; }
+                if (activeConnection) { 
+                    conn.close(); 
+                    return; 
+                }
                 setupConnection(conn, true);
             });
             
             peer.on('error', (err) => {
-                if (err.type === 'peer-unavailable') addSystemMessage(`❌ Собеседник не найден`);
-                else addSystemMessage(`❌ Ошибка`);
+                console.error('Peer error:', err);
+                if (err.type === 'peer-unavailable') {
+                    addSystemMessage(`❌ Собеседник не найден`);
+                } else if (err.type === 'network') {
+                    addSystemMessage(`⚠️ Проблема с сетью, переподключение...`);
+                    setTimeout(() => {
+                        if (peer) peer.reconnect();
+                    }, 2000);
+                } else {
+                    addSystemMessage(`❌ Ошибка: ${err.message || err.type}`);
+                }
+            });
+            
+            peer.on('disconnected', () => {
+                addSystemMessage(`⚠️ Соединение потеряно, переподключаемся...`);
+                peer.reconnect();
             });
         }
         
@@ -303,4 +354,4 @@
         initPeer();
     </script>
 </body>
-</html>
+</html> 
