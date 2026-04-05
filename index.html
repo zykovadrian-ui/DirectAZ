@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ПростоЧат — короткий код + онлайн</title>
+    <title>РусЧат — Мессенджер на русских кодах</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
@@ -20,7 +15,6 @@
             align-items: center;
             padding: 10px;
         }
-
         .app {
             max-width: 500px;
             width: 100%;
@@ -32,84 +26,49 @@
             flex-direction: column;
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
-
         .header {
             background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             color: white;
             padding: 20px;
             text-align: center;
         }
-
-        .header h1 {
-            font-size: 1.5em;
-        }
-
-        .my-card {
+        .my-code-card {
             background: #f1f5f9;
             margin: 15px;
             padding: 15px;
             border-radius: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
+            text-align: center;
         }
-
         .my-code {
-            background: white;
-            padding: 10px 15px;
-            border-radius: 15px;
-            font-family: monospace;
-            font-size: 20px;
+            font-size: 32px;
             font-weight: bold;
-            letter-spacing: 2px;
+            font-family: monospace;
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 10px 0;
+            letter-spacing: 4px;
             cursor: pointer;
         }
-
-        .online-status {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 12px;
-        }
-
-        .online-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #22c55e;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-
         .connect-section {
             padding: 15px;
             background: #f8fafc;
             margin: 0 15px 15px;
             border-radius: 20px;
         }
-
         .connect-input {
             display: flex;
             gap: 10px;
             margin-top: 10px;
         }
-
         .connect-input input {
             flex: 1;
             padding: 12px;
             border: 1px solid #e2e8f0;
             border-radius: 15px;
-            font-size: 16px;
-            text-transform: uppercase;
+            font-size: 18px;
+            text-align: center;
         }
-
         button {
             background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             color: white;
@@ -119,22 +78,14 @@
             font-weight: 600;
             cursor: pointer;
         }
-
-        .friends-section {
+        .friends-list {
             flex: 1;
-            padding: 0 15px;
             overflow-y: auto;
+            padding: 0 15px;
         }
-
-        .section-title {
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #334155;
-        }
-
         .friend-item {
             background: #f1f5f9;
-            padding: 12px;
+            padding: 15px;
             margin-bottom: 10px;
             border-radius: 15px;
             display: flex;
@@ -142,46 +93,25 @@
             gap: 12px;
             cursor: pointer;
         }
-
-        .friend-avatar {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: white;
-        }
-
-        .friend-info {
-            flex: 1;
-        }
-
-        .friend-name {
-            font-weight: 600;
-        }
-
-        .friend-status {
-            font-size: 11px;
-        }
-
         .status-online {
             color: #22c55e;
+            font-size: 12px;
         }
-
         .status-offline {
             color: #94a3b8;
+            font-size: 12px;
         }
-
-        .chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+        .chat-window {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: #f8fafc;
+            display: none;
+            flex-direction: column;
+            z-index: 10;
         }
-
         .chat-header {
             background: white;
             padding: 15px;
@@ -190,51 +120,34 @@
             gap: 12px;
             border-bottom: 1px solid #e2e8f0;
         }
-
         .back-btn {
             background: none;
             border: none;
             font-size: 24px;
             cursor: pointer;
         }
-
         .messages {
             flex: 1;
             overflow-y: auto;
             padding: 15px;
         }
-
         .msg {
             margin-bottom: 12px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .msg.sent {
-            align-items: flex-end;
-        }
-
-        .msg.received {
-            align-items: flex-start;
-        }
-
-        .bubble {
-            max-width: 75%;
             padding: 10px 14px;
-            border-radius: 20px;
+            border-radius: 18px;
+            max-width: 75%;
+            word-wrap: break-word;
         }
-
-        .sent .bubble {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        .msg.sent {
+            background: #3b82f6;
             color: white;
+            margin-left: auto;
         }
-
-        .received .bubble {
+        .msg.received {
             background: white;
             color: #1e293b;
             border: 1px solid #e2e8f0;
         }
-
         .input-area {
             padding: 12px;
             background: white;
@@ -242,117 +155,114 @@
             gap: 10px;
             border-top: 1px solid #e2e8f0;
         }
-
         .input-area input {
             flex: 1;
             padding: 12px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #cbd5e0;
             border-radius: 25px;
             font-size: 14px;
         }
-
         .status-bar {
             padding: 8px;
             text-align: center;
-            font-size: 11px;
+            font-size: 12px;
             background: #f1f5f9;
-            color: #64748b;
         }
     </style>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
 <body>
-<div class="app" id="app">
+<div class="app">
     <div class="header">
-        <h1>💬 ПростоЧат</h1>
+        <h1>🇷🇺 РусЧат</h1>
+        <div style="font-size: 12px;">Мессенджер на русских кодах</div>
     </div>
 
-    <div class="my-card">
-        <div>
-            <div style="font-size: 12px; color: #64748b;">Ваш короткий код</div>
-            <div class="my-code" id="myCode" onclick="copyCode()">загрузка...</div>
-        </div>
-        <div class="online-status">
-            <div class="online-dot"></div>
-            <span>Онлайн</span>
-        </div>
+    <div class="my-code-card">
+        <div style="color: #64748b;">🔑 Ваш русский код</div>
+        <div class="my-code" id="myCode" onclick="copyCode()">загрузка...</div>
+        <div style="font-size: 12px; color: #64748b;">👆 Нажмите чтобы скопировать</div>
     </div>
 
     <div class="connect-section">
-        <div style="font-size: 14px; font-weight: 600;">🔗 Подключиться к другу</div>
+        <div>🔗 Подключиться к другу</div>
         <div class="connect-input">
-            <input type="text" id="friendCode" placeholder="Введите код друга" maxlength="10" style="text-transform: uppercase;">
+            <input type="text" id="friendCode" placeholder="Например: сова" style="text-transform: lowercase;">
             <button id="connectBtn">Подключиться</button>
         </div>
     </div>
 
-    <div class="friends-section">
-        <div class="section-title">👥 Друзья онлайн</div>
-        <div id="friendsList"></div>
+    <div class="friends-list" id="friendsList">
+        <div style="text-align: center; padding: 20px; color: #94a3b8;">
+            🤝 Здесь появятся друзья<br>
+            <small>Скажите друг другу коды</small>
+        </div>
     </div>
 
-    <div class="status-bar" id="globalStatus">
-        🟢 Готов к общению
+    <div class="status-bar" id="statusBar">
+        🟡 Готов к общению
     </div>
 
     <!-- Окно чата -->
-    <div id="chatWindow" style="display: none; flex-direction: column; flex: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #f8fafc; z-index: 10;">
+    <div id="chatWindow" class="chat-window">
         <div class="chat-header">
             <button class="back-btn" onclick="closeChat()">←</button>
-            <div style="flex: 1;">
-                <div id="chatFriendName" style="font-weight: 600;"></div>
-                <div id="chatFriendStatus" style="font-size: 11px;"></div>
+            <div>
+                <div id="chatName" style="font-weight: 600;"></div>
+                <div id="chatStatus" style="font-size: 11px;"></div>
             </div>
         </div>
-        <div class="messages" id="chatMessages"></div>
+        <div class="messages" id="messages"></div>
         <div class="input-area">
-            <input type="text" id="chatInput" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <input type="text" id="msgInput" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendMessage()">
             <button onclick="sendMessage()">📤</button>
         </div>
     </div>
 </div>
 
 <script>
+    // ========== РУССКИЕ СЛОВА ДЛЯ КОДОВ ==========
+    const русскиеСлова = [
+        'сова', 'волк', 'лиса', 'ёж', 'медведь', 'заяц', 'белка', 'лось',
+        'ромашка', 'берёза', 'дуб', 'клён', 'ива', 'сирень', 'пион',
+        'снег', 'дождь', 'гроза', 'радуга', 'звезда', 'луна', 'солнце',
+        'кот', 'пёс', 'хомяк', 'попугай', 'рыба', 'кит', 'орёл',
+        'чай', 'кофе', 'молоко', 'мёд', 'хлеб', 'пирог', 'торт'
+    ];
+    
     // ========== ПЕРЕМЕННЫЕ ==========
     let peer;
-    let myShortCode;
-    let myName = 'Я';
-    let connections = {}; // code -> {conn, name, online}
-    let messages = JSON.parse(localStorage.getItem('simplechat_messages') || '{}');
+    let myCode;
+    let connections = {};
+    let messages = JSON.parse(localStorage.getItem('ruschat_messages') || '{}');
     let currentChatCode = null;
     
-    // ========== ГЕНЕРАЦИЯ КОРОТКОГО КОДА (4-6 символов) ==========
-    function generateShortCode() {
-        const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-        const numbers = '0123456789';
-        let code = '';
-        for (let i = 0; i < 3; i++) {
-            code += letters[Math.floor(Math.random() * letters.length)];
+    // ========== ГЕНЕРАЦИЯ РУССКОГО КОДА ==========
+    function generateRussianCode() {
+        // Пытаемся получить сохранённый
+        let saved = localStorage.getItem('ruschat_code');
+        if (saved && русскиеСлова.includes(saved)) {
+            return saved;
         }
-        code += numbers[Math.floor(Math.random() * numbers.length)];
-        return code;
+        // Или создаём новый
+        const randomWord = русскиеСлова[Math.floor(Math.random() * русскиеСлова.length)];
+        localStorage.setItem('ruschat_code', randomWord);
+        return randomWord;
     }
     
-    let savedCode = localStorage.getItem('simplechat_code');
-    if (savedCode) {
-        myShortCode = savedCode;
-    } else {
-        myShortCode = generateShortCode();
-        localStorage.setItem('simplechat_code', myShortCode);
-    }
-    
-    document.getElementById('myCode').textContent = myShortCode;
+    myCode = generateRussianCode();
+    document.getElementById('myCode').textContent = myCode;
     
     // ========== ИНИЦИАЛИЗАЦИЯ PEER ==========
     function initPeer() {
-        peer = new Peer(myShortCode, {
+        peer = new Peer(myCode, {
             debug: 0,
             config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
         });
         
         peer.on('open', (id) => {
             console.log('Peer открыт:', id);
-            document.getElementById('globalStatus').innerHTML = '🟢 Ваш код: ' + id + ' — отправьте другу';
+            document.getElementById('statusBar').innerHTML = '🟢 Ваш код: ' + id + ' — скажите другу';
         });
         
         peer.on('connection', (conn) => {
@@ -363,9 +273,9 @@
         peer.on('error', (err) => {
             console.error(err);
             if (err.type === 'peer-unavailable') {
-                document.getElementById('globalStatus').innerHTML = '🔴 Друг не найден. Проверьте код';
+                document.getElementById('statusBar').innerHTML = '🔴 Друг не найден. Проверьте код';
                 setTimeout(() => {
-                    document.getElementById('globalStatus').innerHTML = '🟢 Готов к общению';
+                    document.getElementById('statusBar').innerHTML = '🟢 Готов к общению';
                 }, 2000);
             }
         });
@@ -376,26 +286,17 @@
         
         connections[code] = {
             conn: conn,
-            name: code,
-            online: true
+            online: true,
+            name: code
         };
         
         conn.on('data', (data) => {
             if (data.type === 'message') {
                 saveMessage(code, data.text, false);
                 if (currentChatCode === code) {
-                    renderChatMessages();
+                    renderMessages();
                 }
                 renderFriendsList();
-            } else if (data.type === 'ping') {
-                // отвечаем на пинг
-                conn.send({ type: 'pong' });
-            } else if (data.type === 'name') {
-                connections[code].name = data.name;
-                renderFriendsList();
-                if (currentChatCode === code) {
-                    document.getElementById('chatFriendName').innerHTML = escapeHtml(data.name);
-                }
             }
         });
         
@@ -404,23 +305,16 @@
                 connections[code].online = false;
                 renderFriendsList();
                 if (currentChatCode === code) {
-                    document.getElementById('chatFriendStatus').innerHTML = '⚫ Офлайн';
+                    document.getElementById('chatStatus').innerHTML = '⚫ Офлайн';
                 }
-                setTimeout(() => {
-                    delete connections[code];
-                    renderFriendsList();
-                }, 30000);
             }
         });
-        
-        // Отправляем своё имя
-        conn.send({ type: 'name', name: myName });
         
         renderFriendsList();
     }
     
     function connectTo(code) {
-        if (code === myShortCode) {
+        if (code === myCode) {
             alert('Нельзя подключиться к себе');
             return;
         }
@@ -430,57 +324,52 @@
             return;
         }
         
-        document.getElementById('globalStatus').innerHTML = '🟡 Подключение к ' + code + '...';
+        document.getElementById('statusBar').innerHTML = '🟡 Подключение к ' + code + '...';
         
         const conn = peer.connect(code);
         
         conn.on('open', () => {
             addConnection(conn);
-            document.getElementById('globalStatus').innerHTML = '🟢 Подключено к ' + code;
+            document.getElementById('statusBar').innerHTML = '🟢 Подключено к ' + code;
             openChat(code);
         });
         
         conn.on('error', () => {
-            document.getElementById('globalStatus').innerHTML = '🔴 Не удалось подключиться к ' + code;
+            document.getElementById('statusBar').innerHTML = '🔴 ' + code + ' не в сети';
             setTimeout(() => {
-                document.getElementById('globalStatus').innerHTML = '🟢 Готов к общению';
+                document.getElementById('statusBar').innerHTML = '🟢 Готов к общению';
             }, 2000);
         });
         
         setTimeout(() => {
             if (!connections[code]) {
-                document.getElementById('globalStatus').innerHTML = '🔴 Друг не в сети. Попробуйте позже';
+                document.getElementById('statusBar').innerHTML = '🔴 Друг не в сети. Проверьте код: ' + code;
             }
         }, 3000);
     }
     
     // ========== ОТПРАВКА СООБЩЕНИЙ ==========
     function sendMessage() {
-        const input = document.getElementById('chatInput');
+        const input = document.getElementById('msgInput');
         const text = input.value.trim();
         if (!text || !currentChatCode) return;
         
         const conn = connections[currentChatCode]?.conn;
         if (conn && conn.open) {
-            conn.send({ type: 'message', text: text, time: Date.now() });
+            conn.send({ type: 'message', text: text });
             saveMessage(currentChatCode, text, true);
-            renderChatMessages();
+            renderMessages();
             input.value = '';
         } else {
-            alert('Друг не в сети. Сообщение не отправлено');
+            alert('Друг не в сети');
         }
     }
     
     function saveMessage(code, text, isSent) {
         if (!messages[code]) messages[code] = [];
-        messages[code].push({
-            text: text,
-            isSent: isSent,
-            time: Date.now()
-        });
-        // Оставляем только последние 50 сообщений
+        messages[code].push({ text, isSent, time: Date.now() });
         if (messages[code].length > 50) messages[code] = messages[code].slice(-50);
-        localStorage.setItem('simplechat_messages', JSON.stringify(messages));
+        localStorage.setItem('ruschat_messages', JSON.stringify(messages));
     }
     
     // ========== UI ==========
@@ -489,32 +378,33 @@
         const onlineFriends = Object.keys(connections).filter(code => connections[code].online);
         
         if (onlineFriends.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 20px; color: #94a3b8;">🤝 Никого нет в сети<br><small>Отправьте ваш код другу: <strong>' + myShortCode + '</strong></small></div>';
+            container.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #94a3b8;">
+                    🤝 Никого нет в сети<br>
+                    <small>Скажите другу ваш код: <strong style="font-size: 18px;">${myCode}</strong></small>
+                </div>
+            `;
             return;
         }
         
-        container.innerHTML = onlineFriends.map(code => {
-            const f = connections[code];
-            return `
-                <div class="friend-item" onclick="openChat('${code}')">
-                    <div class="friend-avatar">👤</div>
-                    <div class="friend-info">
-                        <div class="friend-name">${escapeHtml(f.name || code)}</div>
-                        <div class="friend-status status-online">🟢 Онлайн</div>
-                    </div>
-                    <button onclick="event.stopPropagation(); openChat('${code}')" style="background: none; color: #3b82f6; padding: 5px 10px;">💬</button>
+        container.innerHTML = onlineFriends.map(code => `
+            <div class="friend-item" onclick="openChat('${code}')">
+                <div style="width: 45px; height: 45px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">👤</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600;">${code}</div>
+                    <div class="status-online">🟢 Онлайн</div>
                 </div>
-            `;
-        }).join('');
+                <button onclick="event.stopPropagation(); openChat('${code}')" style="background: none; color: #3b82f6; padding: 5px 10px;">💬</button>
+            </div>
+        `).join('');
     }
     
     function openChat(code) {
         currentChatCode = code;
-        const friend = connections[code];
-        document.getElementById('chatFriendName').innerHTML = escapeHtml(friend?.name || code);
-        document.getElementById('chatFriendStatus').innerHTML = friend?.online ? '🟢 Онлайн' : '⚫ Офлайн';
+        document.getElementById('chatName').innerHTML = code;
+        document.getElementById('chatStatus').innerHTML = connections[code]?.online ? '🟢 Онлайн' : '⚫ Офлайн';
         document.getElementById('chatWindow').style.display = 'flex';
-        renderChatMessages();
+        renderMessages();
     }
     
     function closeChat() {
@@ -523,8 +413,8 @@
         renderFriendsList();
     }
     
-    function renderChatMessages() {
-        const container = document.getElementById('chatMessages');
+    function renderMessages() {
+        const container = document.getElementById('messages');
         if (!currentChatCode || !messages[currentChatCode] || messages[currentChatCode].length === 0) {
             container.innerHTML = '<div style="text-align: center; padding: 40px; color: #94a3b8;">💬 Напишите первое сообщение</div>';
             return;
@@ -532,42 +422,36 @@
         
         container.innerHTML = messages[currentChatCode].map(msg => `
             <div class="msg ${msg.isSent ? 'sent' : 'received'}">
-                <div class="bubble">${escapeHtml(msg.text)}</div>
+                ${msg.text}
             </div>
         `).join('');
         container.scrollTop = container.scrollHeight;
     }
     
     function copyCode() {
-        navigator.clipboard.writeText(myShortCode);
-        alert('Код скопирован: ' + myShortCode);
-    }
-    
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        navigator.clipboard.writeText(myCode);
+        alert('Код скопирован: ' + myCode);
     }
     
     // ========== ЗАПУСК ==========
     initPeer();
     
     document.getElementById('connectBtn').onclick = () => {
-        const code = document.getElementById('friendCode').value.trim().toUpperCase();
+        let code = document.getElementById('friendCode').value.trim().toLowerCase();
         if (code) connectTo(code);
     };
     
-    // Периодическая проверка онлайна (пинги)
+    // Периодическая очистка офлайн друзей
     setInterval(() => {
-        Object.values(connections).forEach(c => {
-            if (c.conn && c.conn.open) {
-                c.conn.send({ type: 'ping' });
+        let changed = false;
+        Object.keys(connections).forEach(code => {
+            if (!connections[code].online && connections[code].conn && !connections[code].conn.open) {
+                delete connections[code];
+                changed = true;
             }
         });
+        if (changed) renderFriendsList();
     }, 30000);
-    
-    // Сохраняем имя (можно потом добавить поле)
-    myName = localStorage.getItem('simplechat_name') || 'Пользователь';
 </script>
 </body>
 </html>
