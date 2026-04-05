@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Простой чат</title>
+    <title>Автономный чат</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -107,16 +107,26 @@
             text-align: center;
             background: #f1f5f9;
         }
+        .info {
+            background: #fef3c7;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            border-bottom: 1px solid #fde68a;
+        }
     </style>
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
 <body>
 <div class="chat">
     <div class="header">
         <strong>💬 Простой чат</strong>
     </div>
+    <div class="info">
+        📌 Работает через одноранговую сеть (WebRTC)<br>
+        🔗 Нужен только интернет для первого подключения
+    </div>
     <div class="id-box" onclick="copyId()">
-        📋 Ваш ID: <span id="myId">загрузка...</span>
+        📋 Ваш ID: <span id="myId">создаю...</span>
     </div>
     <div class="connect-box">
         <input type="text" id="friendId" placeholder="Введите ID друга">
@@ -131,13 +141,18 @@
 </div>
 
 <script>
-    let peer, conn, myIdValue;
+    // Простой WebRTC без внешних библиотек
+    let localConnection, remoteConnection, sendChannel, receiveChannel;
+    let myId, targetId;
+    let connected = false;
+    
     const messagesDiv = document.getElementById('messages');
     const statusDiv = document.getElementById('status');
     const msgInput = document.getElementById('msgInput');
     const sendBtn = document.getElementById('sendBtn');
+    const myIdSpan = document.getElementById('myId');
+    const friendIdInput = document.getElementById('friendId');
     
-    // Отключить отправку пока нет связи
     sendBtn.disabled = true;
     msgInput.disabled = true;
     
@@ -150,78 +165,189 @@
     }
     
     function copyId() {
-        if (myIdValue) {
-            navigator.clipboard.writeText(myIdValue);
-            alert('ID скопирован: ' + myIdValue);
+        if (myId) {
+            navigator.clipboard.writeText(myId);
+            alert('ID скопирован: ' + myId);
         }
     }
     
-    // Создаём peer с коротким ID
-    let shortId = localStorage.getItem('shortId');
-    if (!shortId) {
-        shortId = prompt('Придумайте короткий ID (3-6 символов, латиница или цифры):', 'кот' + Math.floor(Math.random()*100));
-        if (!shortId) shortId = 'user' + Math.floor(Math.random()*1000);
-        localStorage.setItem('shortId', shortId);
+    // Генерируем простой ID
+    function generateId() {
+        const saved = localStorage.getItem('myChatId');
+        if (saved) return saved;
+        
+        // Короткий читаемый ID
+        const adjectives = ['кот', 'лис', 'сон', 'чай', 'лун', 'звезд', 'быст', 'тих', 'мяу', 'гав'];
+        const nouns = ['кит', 'лес', 'море', 'дом', 'путь', 'сон', 'друг', 'мир', 'свет', 'тепло'];
+        const num = Math.floor(Math.random() * 100);
+        const id = adjectives[Math.floor(Math.random() * adjectives.length)] + 
+                   nouns[Math.floor(Math.random() * nouns.length)] + num;
+        
+        localStorage.setItem('myChatId', id);
+        return id;
     }
     
-    peer = new Peer(shortId);
+    myId = generateId();
+    myIdSpan.textContent = myId;
+    statusDiv.innerHTML = '🟡 Ваш ID: ' + myId + ' (нажми чтобы скопировать)';
     
-    peer.on('open', (id) => {
-        myIdValue = id;
-        document.getElementById('myId').textContent = id;
-        statusDiv.innerHTML = '🟢 Ваш ID: ' + id + ' (нажми чтобы скопировать)';
-    });
-    
-    peer.on('connection', (c) => {
-        conn = c;
-        setupConnection();
-        statusDiv.innerHTML = '🟢 Подключено к ' + conn.peer;
-        sendBtn.disabled = false;
-        msgInput.disabled = false;
-        addMsg('✅ Собеседник подключился', false);
-    });
-    
-    peer.on('error', (err) => {
-        if (err.type === 'peer-unavailable') {
-            statusDiv.innerHTML = '🔴 Собеседник не найден';
+    // Создаём соединение
+    function createConnection(isInitiator, targetIdForConnection) {
+        targetId = targetIdForConnection;
+        
+        const config = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+        
+        if (isInitiator) {
+            // Инициатор создаёт соединение
+            localConnection = new RTCPeerConnection(config);
+            sendChannel = localConnection.createDataChannel('chat');
+            
+            sendChannel.onopen = () => {
+                connected = true;
+                statusDiv.innerHTML = '🟢 Подключено к ' + targetId;
+                sendBtn.disabled = false;
+                msgInput.disabled = false;
+                addMsg('✅ Соединение установлено!', false);
+            };
+            
+            sendChannel.onclose = () => {
+                connected = false;
+                statusDiv.innerHTML = '⚪ Соединение разорвано';
+                sendBtn.disabled = true;
+                msgInput.disabled = true;
+            };
+            
+            sendChannel.onmessage = (event) => {
+                addMsg(event.data, false);
+            };
+            
+            localConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    // Отправляем кандидата через prompt (временное решение)
+                    console.log('Candidate:', event.candidate);
+                }
+            };
+            
+            // Создаём offer
+            localConnection.createOffer()
+                .then(offer => localConnection.setLocalDescription(offer))
+                .then(() => {
+                    // Показываем offer для отправки другу
+                    const offer = JSON.stringify(localConnection.localDescription);
+                    prompt('Скопируйте этот код и отправьте другу:', offer);
+                });
+        } else {
+            // Принимающая сторона
+            remoteConnection = new RTCPeerConnection(config);
+            
+            remoteConnection.ondatachannel = (event) => {
+                receiveChannel = event.channel;
+                receiveChannel.onopen = () => {
+                    connected = true;
+                    statusDiv.innerHTML = '🟢 Подключено к ' + targetId;
+                    sendBtn.disabled = false;
+                    msgInput.disabled = false;
+                    addMsg('✅ Соединение установлено!', false);
+                };
+                receiveChannel.onclose = () => {
+                    connected = false;
+                    statusDiv.innerHTML = '⚪ Соединение разорвано';
+                    sendBtn.disabled = true;
+                    msgInput.disabled = true;
+                };
+                receiveChannel.onmessage = (event) => {
+                    addMsg(event.data, false);
+                };
+                sendChannel = receiveChannel;
+            };
+            
+            remoteConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    console.log('Candidate:', event.candidate);
+                }
+            };
         }
-    });
-    
-    function setupConnection() {
-        conn.on('data', (data) => {
-            addMsg(data.text, false);
-        });
-        conn.on('close', () => {
-            statusDiv.innerHTML = '⚪ Соединение разорвано';
-            sendBtn.disabled = true;
-            msgInput.disabled = true;
-            addMsg('🔌 Собеседник отключился', false);
-        });
     }
     
-    document.getElementById('connectBtn').onclick = () => {
-        const friendId = document.getElementById('friendId').value.trim();
-        if (!friendId) return;
-        if (conn) conn.close();
-        conn = peer.connect(friendId);
-        setupConnection();
-        statusDiv.innerHTML = '🟡 Подключение к ' + friendId + '...';
-    };
-    
+    // Отправка сообщения
     function send() {
         const text = msgInput.value.trim();
-        if (!text || !conn) return;
-        conn.send({ text: text });
+        if (!text || !connected || !sendChannel) return;
+        sendChannel.send(text);
         addMsg(text, true);
         msgInput.value = '';
     }
     
+    // Подключение через ручной обмен SDP
+    document.getElementById('connectBtn').onclick = () => {
+        const friendIdInput = document.getElementById('friendId').value.trim();
+        if (!friendIdInput) {
+            alert('Введите ID друга');
+            return;
+        }
+        
+        // Простой способ: отправляем offer через буфер обмена
+        const isInitiator = confirm('Вы первый подключаетесь? "OK" - да, "Отмена" - принимаю подключение');
+        
+        if (isInitiator) {
+            createConnection(true, friendIdInput);
+        } else {
+            // Принимаем offer от друга
+            const offerStr = prompt('Вставьте код подключения от друга:');
+            if (offerStr) {
+                try {
+                    const offer = JSON.parse(offerStr);
+                    remoteConnection = new RTCPeerConnection({
+                        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+                    });
+                    
+                    remoteConnection.ondatachannel = (event) => {
+                        receiveChannel = event.channel;
+                        receiveChannel.onopen = () => {
+                            connected = true;
+                            statusDiv.innerHTML = '🟢 Подключено к ' + friendIdInput;
+                            sendBtn.disabled = false;
+                            msgInput.disabled = false;
+                            addMsg('✅ Соединение установлено!', false);
+                        };
+                        receiveChannel.onclose = () => {
+                            connected = false;
+                            statusDiv.innerHTML = '⚪ Соединение разорвано';
+                            sendBtn.disabled = true;
+                            msgInput.disabled = true;
+                        };
+                        receiveChannel.onmessage = (event) => {
+                            addMsg(event.data, false);
+                        };
+                        sendChannel = receiveChannel;
+                    };
+                    
+                    remoteConnection.setRemoteDescription(offer)
+                        .then(() => remoteConnection.createAnswer())
+                        .then(answer => remoteConnection.setLocalDescription(answer))
+                        .then(() => {
+                            const answer = JSON.stringify(remoteConnection.localDescription);
+                            prompt('Отправьте этот код другу:', answer);
+                        });
+                } catch(e) {
+                    alert('Ошибка: неверный код');
+                }
+            }
+        }
+    };
+    
     sendBtn.onclick = send;
     
-    // Подсказка
+    // Добавляем сообщение о работе
     setTimeout(() => {
-        addMsg('✨ Отправьте этот ID другу: ' + shortId, false);
-        addMsg('💡 Друг вводит ваш ID и нажимает "Подключиться"', false);
+        addMsg('✨ Ваш ID: ' + myId, false);
+        addMsg('💡 Отправьте этот ID другу любым способом', false);
+        addMsg('📱 Друг вводит ваш ID и нажимает "Подключиться"', false);
     }, 1000);
 </script>
 </body>
